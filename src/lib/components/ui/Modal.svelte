@@ -7,10 +7,19 @@
 
 	let { open, title, onclose, children }: Props & { children: any } = $props();
 
-	function handleBackdrop(e: MouseEvent) {
-		if (e.target === e.currentTarget) {
+	let pointerDownTarget: EventTarget | null = null;
+
+	function handlePointerDown(e: PointerEvent) {
+		if (e.button !== 0) return;
+		pointerDownTarget = e.target;
+	}
+
+	function handlePointerUp(e: PointerEvent) {
+		if (e.button !== 0) return;
+		if (e.target === e.currentTarget && pointerDownTarget === e.currentTarget) {
 			onclose();
 		}
+		pointerDownTarget = null;
 	}
 
 	function handleKeydown(e: KeyboardEvent) {
@@ -24,7 +33,8 @@
 	<!-- svelte-ignore a11y_no_static_element_interactions -->
 	<div
 		class="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm"
-		onclick={handleBackdrop}
+		onpointerdown={handlePointerDown}
+		onpointerup={handlePointerUp}
 		onkeydown={handleKeydown}
 	>
 		<div class="bg-slate-900 border border-slate-700 rounded-lg shadow-xl w-full max-w-md mx-4">
