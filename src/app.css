@@ -1,0 +1,64 @@
+@import 'tailwindcss';
+
+@theme {
+	--font-sans: 'Inter', system-ui, sans-serif;
+	--font-mono: 'JetBrains Mono', monospace;
+
+	--color-primary-50: oklch(0.97 0.02 200);
+	--color-primary-100: oklch(0.93 0.04 200);
+	--color-primary-200: oklch(0.87 0.07 200);
+	--color-primary-300: oklch(0.79 0.11 195);
+	--color-primary-400: oklch(0.72 0.14 195);
+	--color-primary-500: oklch(0.65 0.15 195);
+	--color-primary-600: oklch(0.55 0.14 195);
+	--color-primary-700: oklch(0.45 0.12 195);
+	--color-primary-800: oklch(0.38 0.09 195);
+	--color-primary-900: oklch(0.32 0.07 195);
+	--color-primary-950: oklch(0.22 0.05 195);
+}
+
+body {
+	font-family: var(--font-sans);
+	background-color: theme('colors.slate.950');
+	color: theme('colors.slate.100');
+}
+
+@media print {
+	body {
+		background: white !important;
+		color: black !important;
+	}
+
+	/* Force connector lines to print */
+	.bg-slate-600 {
+		-webkit-print-color-adjust: exact;
+		print-color-adjust: exact;
+	}
+
+	/* Darken light colors for white paper */
+	.text-slate-100, .text-slate-200, .text-slate-300 {
+		color: #111 !important;
+	}
+	.text-slate-400, .text-slate-500 {
+		color: #444 !important;
+	}
+	.text-slate-600 {
+		color: #888 !important;
+	}
+	.text-amber-400 {
+		color: #92400e !important;
+	}
+	.text-cyan-400 {
+		color: #155e75 !important;
+	}
+	.text-violet-400 {
+		color: #5b21b6 !important;
+	}
+	.text-emerald-400 {
+		color: #065f46 !important;
+	}
+	.text-red-400, .text-red-500\/60 {
+		color: #b91c1c !important;
+	}
+
+}

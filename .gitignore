@@ -1,0 +1,12 @@
+node_modules
+.svelte-kit
+build
+.env
+.env.*
+!.env.example
+data/
+drizzle/
+.DS_Store
+.playwright-mcp/
+*.png
+sveltekitWithBun.md
