@@ -59,14 +59,11 @@
 </script>
 
 <div class="flex flex-col">
-	<div class="flex items-center gap-1 relative">
-		{#if device.parentInterfaceId}
-			<div class="absolute left-0 top-[13px] w-6 h-[2px] bg-slate-600 pointer-events-none"></div>
-		{/if}
+	<div class="flex items-center gap-1">
 		{#if hasChildren}
 			<button
 				onclick={toggleCollapse}
-				class="p-0.5 text-slate-500 hover:text-slate-300 transition-colors flex-shrink-0 print:hidden relative z-10"
+				class="p-0.5 text-slate-500 hover:text-slate-300 transition-colors flex-shrink-0 print:hidden"
 				title={effectiveCollapsed ? 'Expand' : 'Collapse'}
 			>
 				<svg class="w-4 h-4 transition-transform {effectiveCollapsed ? '-rotate-90' : ''}" fill="none" stroke="currentColor" viewBox="0 0 24 24">

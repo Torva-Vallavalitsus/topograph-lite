@@ -114,9 +114,9 @@
 	}
 </script>
 
-<div class="flex items-start">
+<div class="relative">
 	<!-- Interface labels with connector lines -->
-	<div class="flex items-center h-[28px] flex-shrink-0 -ml-px">
+	<div class="flex items-center h-[28px] -ml-px">
 		<div class="w-[33px] h-[2px] bg-slate-600"></div>
 		{#if editing}
 			<input
@@ -143,7 +143,6 @@
 				onkeydown={handleUplinkKeydown}
 				class="px-1.5 py-0.5 text-[11px] font-mono text-slate-200 bg-slate-900 border border-cyan-500 rounded w-20 outline-none"
 			/>
-			<div class="w-3 h-[2px] bg-slate-600"></div>
 		{:else if iface.childDevice?.uplinkInterfaceName}
 			<button
 				ondblclick={startUplinkEdit}
@@ -151,7 +150,6 @@
 			>
 				{iface.childDevice.uplinkInterfaceName}
 			</button>
-			<div class="w-3 h-[2px] bg-slate-600"></div>
 		{:else if iface.childDevice}
 			<button
 				ondblclick={startUplinkEdit}
@@ -159,7 +157,6 @@
 			>
 				···
 			</button>
-			<div class="w-3 h-[2px] bg-slate-600"></div>
 		{/if}
 		{#if !iface.childDevice}
 			<button
@@ -175,11 +172,17 @@
 	</div>
 
 	{#if iface.childDevice}
-		<DeviceNode device={iface.childDevice} {topologyId} {onrefresh} {expandGen} {collapseGen} {filter} />
+		<!-- Vertical connector from label row down to child card (2px overlap for subpixel) -->
+		<div class="absolute top-[14px] left-[-1px] w-[2px] bg-slate-600 h-[30px]"></div>
+		<!-- Child device with horizontal connector from trunk -->
+		<div class="ml-[calc(1rem+20px)] relative">
+			<div class="absolute -left-[calc(1rem+21px)] top-[14px] w-[calc(1rem+21px)] h-[2px] bg-slate-600"></div>
+			<DeviceNode device={iface.childDevice} {topologyId} {onrefresh} {expandGen} {collapseGen} {filter} />
+		</div>
 	{:else}
 		<!-- svelte-ignore a11y_no_static_element_interactions -->
 		<div
-			class="flex items-center h-[28px]"
+			class="ml-8 mt-1"
 			ondragover={handleDragOver}
 			ondragleave={handleDragLeave}
 			ondrop={handleDrop}
