@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { invalidateAll } from '$app/navigation';
-	import { setContext } from 'svelte';
+	import { setContext, untrack } from 'svelte';
 	import TopologyTree from '$lib/components/TopologyTree.svelte';
 	import { connectToTopology, type TopologyWs } from '$lib/ws';
 	import { clearAllLiveEdits } from '$lib/live-edits.svelte';
@@ -15,9 +15,12 @@
 	});
 
 	$effect(() => {
-		wsConn?.destroy();
-		clearAllLiveEdits();
-		wsConn = connectToTopology(data.topology.id, () => invalidateAll());
+		const topoId = data.topology.id;
+		untrack(() => {
+			wsConn?.destroy();
+			clearAllLiveEdits();
+		});
+		wsConn = connectToTopology(topoId, () => invalidateAll());
 		return () => { wsConn?.destroy(); wsConn = null; clearAllLiveEdits(); };
 	});
 

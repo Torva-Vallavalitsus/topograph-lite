@@ -11,3 +11,4 @@ drizzle/
 *.png
 sveltekitWithBun.md
 scan.sh
+/tmp
