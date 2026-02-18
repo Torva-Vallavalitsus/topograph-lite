@@ -4,6 +4,7 @@ import { topologies, devices, interfaces } from '$lib/server/db/schema';
 import { parseDrawioXml } from '$lib/server/drawio-parser';
 import { eq } from 'drizzle-orm';
 import { nanoid } from 'nanoid';
+import { notifyTopologyChanged } from '$lib/server/ws';
 import type { RequestHandler } from './$types';
 
 export const POST: RequestHandler = async ({ request }) => {
@@ -65,5 +66,6 @@ export const POST: RequestHandler = async ({ request }) => {
 		}
 	}
 
+	notifyTopologyChanged(topologyId);
 	return json({ id: topologyId }, { status: 201 });
 };

@@ -1,8 +1,21 @@
 <script lang="ts">
 	import { invalidateAll } from '$app/navigation';
+	import { onDestroy } from 'svelte';
+	import { setContext } from 'svelte';
 	import TopologyTree from '$lib/components/TopologyTree.svelte';
+	import { connectToTopology, sendEditing, sendEditingStop } from '$lib/ws';
+	import { clearAllLiveEdits } from '$lib/live-edits.svelte';
 
 	let { data } = $props();
+
+	setContext('ws', { sendEditing, sendEditingStop });
+
+	let cleanup: (() => void) | null = null;
+	$effect(() => {
+		cleanup?.();
+		cleanup = connectToTopology(data.topology.id, () => invalidateAll());
+	});
+	onDestroy(() => cleanup?.());
 
 	let editing = $state(false);
 	let editName = $state('');

@@ -3,6 +3,7 @@ import { db } from '$lib/server/db';
 import { devices, topologies } from '$lib/server/db/schema';
 import { nanoid } from 'nanoid';
 import { eq } from 'drizzle-orm';
+import { notifyTopologyChanged } from '$lib/server/ws';
 import type { RequestHandler } from './$types';
 
 export const POST: RequestHandler = async ({ params, request }) => {
@@ -38,5 +39,6 @@ export const POST: RequestHandler = async ({ params, request }) => {
 		.where(eq(topologies.id, params.id))
 		.run();
 
+	notifyTopologyChanged(params.id);
 	return json({ id }, { status: 201 });
 };

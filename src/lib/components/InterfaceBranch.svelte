@@ -1,5 +1,6 @@
 <script lang="ts">
 	import type { TopologyInterface } from '$lib/types';
+	import { getContext } from 'svelte';
 	import DeviceNode from './DeviceNode.svelte';
 
 	interface Props {
@@ -13,6 +14,12 @@
 	}
 
 	let { iface, topologyId, onrefresh, expandGen, collapseGen, filter, parentDeviceHostname }: Props = $props();
+
+	const ws = getContext<{ sendEditing: (id: string, fields: Record<string, unknown>) => void; sendEditingStop: (id: string) => void } | undefined>('ws');
+
+	import { getLiveEdit } from '$lib/live-edits.svelte';
+	const liveUplink = $derived(iface.childDevice ? getLiveEdit(iface.childDevice.id) : undefined);
+	const effectiveUplinkName = $derived((liveUplink?.uplinkInterfaceName as string | undefined) ?? iface.childDevice?.uplinkInterfaceName);
 
 	let editing = $state(false);
 	let editName = $state('');
@@ -53,6 +60,7 @@
 
 	async function saveUplinkEdit() {
 		editingUplink = false;
+		if (iface.childDevice) ws?.sendEditingStop(iface.childDevice.id);
 		if (!iface.childDevice) return;
 		const trimmed = editUplinkName.trim();
 		if (trimmed === (iface.childDevice.uplinkInterfaceName || '')) return;
@@ -66,7 +74,16 @@
 
 	function handleUplinkKeydown(e: KeyboardEvent) {
 		if (e.key === 'Enter') saveUplinkEdit();
-		if (e.key === 'Escape') editingUplink = false;
+		if (e.key === 'Escape') {
+			editingUplink = false;
+			if (iface.childDevice) ws?.sendEditingStop(iface.childDevice.id);
+		}
+	}
+
+	function handleUplinkInput() {
+		if (iface.childDevice) {
+			ws?.sendEditing(iface.childDevice.id, { uplinkInterfaceName: editUplinkName });
+		}
 	}
 
 	async function connectDevice() {
@@ -141,14 +158,15 @@
 				bind:value={editUplinkName}
 				onblur={saveUplinkEdit}
 				onkeydown={handleUplinkKeydown}
+				oninput={handleUplinkInput}
 				class="px-1.5 py-0.5 text-[11px] font-mono text-slate-200 bg-slate-900 border border-cyan-500 rounded w-20 outline-none"
 			/>
-		{:else if iface.childDevice?.uplinkInterfaceName}
+		{:else if effectiveUplinkName}
 			<button
 				ondblclick={startUplinkEdit}
 				class="px-1.5 py-0.5 text-[11px] font-mono text-slate-500 bg-slate-800/60 border border-slate-700/60 rounded whitespace-nowrap hover:border-slate-500 hover:text-slate-400 transition-colors cursor-pointer"
 			>
-				{iface.childDevice.uplinkInterfaceName}
+				{effectiveUplinkName}
 			</button>
 		{:else if iface.childDevice}
 			<button

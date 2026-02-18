@@ -2,6 +2,7 @@ import { json, error } from '@sveltejs/kit';
 import { db } from '$lib/server/db';
 import { topologies } from '$lib/server/db/schema';
 import { eq } from 'drizzle-orm';
+import { notifyTopologyChanged } from '$lib/server/ws';
 import type { RequestHandler } from './$types';
 
 export const PATCH: RequestHandler = async ({ params, request }) => {
@@ -13,6 +14,7 @@ export const PATCH: RequestHandler = async ({ params, request }) => {
 		.where(eq(topologies.id, params.id))
 		.run();
 
+	notifyTopologyChanged(params.id);
 	return json({ success: true });
 };
 

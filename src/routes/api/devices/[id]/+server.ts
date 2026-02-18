@@ -2,6 +2,7 @@ import { json } from '@sveltejs/kit';
 import { db } from '$lib/server/db';
 import { devices, interfaces, topologies } from '$lib/server/db/schema';
 import { eq } from 'drizzle-orm';
+import { notifyTopologyChanged } from '$lib/server/ws';
 import type { RequestHandler } from './$types';
 
 export const PATCH: RequestHandler = async ({ params, request }) => {
@@ -32,14 +33,16 @@ export const PATCH: RequestHandler = async ({ params, request }) => {
 			.set({ updatedAt: now })
 			.where(eq(topologies.id, device.topologyId))
 			.run();
+		notifyTopologyChanged(device.topologyId);
 	}
 
 	return json({ success: true });
 };
 
 export const DELETE: RequestHandler = async ({ params }) => {
-	// Recursively delete device and all children
+	const device = db.select().from(devices).where(eq(devices.id, params.id)).get();
 	deleteDeviceRecursive(params.id);
+	if (device) notifyTopologyChanged(device.topologyId);
 	return json({ success: true });
 };
 
