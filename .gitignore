@@ -10,3 +10,4 @@ drizzle/
 .playwright-mcp/
 *.png
 sveltekitWithBun.md
+scan.sh
