@@ -80,10 +80,13 @@
 		}
 	}
 
+	let uplinkDebounce: ReturnType<typeof setTimeout> | undefined;
 	function handleUplinkInput() {
-		if (iface.childDevice) {
-			ws?.sendEditing(iface.childDevice.id, { uplinkInterfaceName: editUplinkName });
-		}
+		if (!iface.childDevice) return;
+		clearTimeout(uplinkDebounce);
+		uplinkDebounce = setTimeout(() => {
+			ws?.sendEditing(iface.childDevice!.id, { uplinkInterfaceName: editUplinkName });
+		}, 150);
 	}
 
 	async function connectDevice() {

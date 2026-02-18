@@ -8,6 +8,9 @@ import type { RequestHandler } from './$types';
 export const PATCH: RequestHandler = async ({ params, request }) => {
 	const body = await request.json();
 
+	const iface = db.select().from(interfaces).where(eq(interfaces.id, params.id)).get();
+	if (!iface) return json({ error: 'not found' }, { status: 404 });
+
 	const updateData: Record<string, unknown> = {};
 	if ('name' in body) updateData.name = body.name;
 	if ('comment' in body) updateData.comment = body.comment;
@@ -18,11 +21,8 @@ export const PATCH: RequestHandler = async ({ params, request }) => {
 		.where(eq(interfaces.id, params.id))
 		.run();
 
-	const iface = db.select().from(interfaces).where(eq(interfaces.id, params.id)).get();
-	if (iface) {
-		const device = db.select().from(devices).where(eq(devices.id, iface.deviceId)).get();
-		if (device) notifyTopologyChanged(device.topologyId);
-	}
+	const device = db.select().from(devices).where(eq(devices.id, iface.deviceId)).get();
+	if (device) notifyTopologyChanged(device.topologyId);
 
 	return json({ success: true });
 };

@@ -1,21 +1,25 @@
 <script lang="ts">
 	import { invalidateAll } from '$app/navigation';
-	import { onDestroy } from 'svelte';
 	import { setContext } from 'svelte';
 	import TopologyTree from '$lib/components/TopologyTree.svelte';
-	import { connectToTopology, sendEditing, sendEditingStop } from '$lib/ws';
+	import { connectToTopology, type TopologyWs } from '$lib/ws';
 	import { clearAllLiveEdits } from '$lib/live-edits.svelte';
 
 	let { data } = $props();
 
-	setContext('ws', { sendEditing, sendEditingStop });
+	let wsConn: TopologyWs | null = null;
 
-	let cleanup: (() => void) | null = null;
-	$effect(() => {
-		cleanup?.();
-		cleanup = connectToTopology(data.topology.id, () => invalidateAll());
+	setContext('ws', {
+		sendEditing: (id: string, fields: Record<string, unknown>) => wsConn?.sendEditing(id, fields),
+		sendEditingStop: (id: string) => wsConn?.sendEditingStop(id)
 	});
-	onDestroy(() => cleanup?.());
+
+	$effect(() => {
+		wsConn?.destroy();
+		clearAllLiveEdits();
+		wsConn = connectToTopology(data.topology.id, () => invalidateAll());
+		return () => { wsConn?.destroy(); wsConn = null; clearAllLiveEdits(); };
+	});
 
 	let editing = $state(false);
 	let editName = $state('');

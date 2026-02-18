@@ -1,17 +1,21 @@
 import { setLiveEdit, clearLiveEdit, clearAllLiveEdits } from './live-edits.svelte';
 
-interface WsConnection {
-	send(data: string): void;
-	close(): void;
-}
-
-let ws: WsConnection | null = null;
-let reconnectTimer: ReturnType<typeof setTimeout> | null = null;
-let reconnectDelay = 1000;
 const MAX_RECONNECT_DELAY = 30_000;
 
-export function connectToTopology(topologyId: string, onRefresh: () => void): () => void {
+export interface TopologyWs {
+	sendEditing(deviceId: string, fields: Record<string, unknown>): void;
+	sendEditingStop(deviceId: string): void;
+	destroy(): void;
+}
+
+export function connectToTopology(topologyId: string, onRefresh: () => void): TopologyWs {
+	let ws: WebSocket | null = null;
+	let reconnectTimer: ReturnType<typeof setTimeout> | null = null;
+	let reconnectDelay = 1000;
+	let destroyed = false;
+
 	function connect() {
+		if (destroyed) return;
 		try {
 			const protocol = location.protocol === 'https:' ? 'wss:' : 'ws:';
 			const url = `${protocol}//${location.host}/ws?topologyId=${topologyId}`;
@@ -52,7 +56,7 @@ export function connectToTopology(topologyId: string, onRefresh: () => void): ()
 	}
 
 	function scheduleReconnect() {
-		if (reconnectTimer) return;
+		if (destroyed || reconnectTimer) return;
 		reconnectTimer = setTimeout(() => {
 			reconnectTimer = null;
 			reconnectDelay = Math.min(reconnectDelay * 2, MAX_RECONNECT_DELAY);
@@ -62,20 +66,18 @@ export function connectToTopology(topologyId: string, onRefresh: () => void): ()
 
 	connect();
 
-	return () => {
-		if (reconnectTimer) {
-			clearTimeout(reconnectTimer);
-			reconnectTimer = null;
+	return {
+		sendEditing(deviceId, fields) {
+			ws?.send(JSON.stringify({ type: 'editing', deviceId, fields }));
+		},
+		sendEditingStop(deviceId) {
+			ws?.send(JSON.stringify({ type: 'editing-stop', deviceId }));
+		},
+		destroy() {
+			destroyed = true;
+			if (reconnectTimer) clearTimeout(reconnectTimer);
+			ws?.close();
+			ws = null;
 		}
-		ws?.close();
-		ws = null;
 	};
-}
-
-export function sendEditing(deviceId: string, fields: Record<string, unknown>) {
-	ws?.send(JSON.stringify({ type: 'editing', deviceId, fields }));
-}
-
-export function sendEditingStop(deviceId: string) {
-	ws?.send(JSON.stringify({ type: 'editing-stop', deviceId }));
 }

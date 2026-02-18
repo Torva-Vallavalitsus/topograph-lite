@@ -41,13 +41,18 @@ export const websocket = {
 
 	message(ws: { data: WsData; publish(topic: string, data: string): void }, message: string | ArrayBuffer) {
 		const text = typeof message === 'string' ? message : new TextDecoder().decode(message);
+		if (text.length > 10_000) return;
 		try {
 			const data = JSON.parse(text);
-			if (data.type === 'editing' || data.type === 'editing-stop') {
+			if (typeof data.deviceId !== 'string') return;
+			if (data.type === 'editing') {
+				if (!data.fields || typeof data.fields !== 'object' || Array.isArray(data.fields)) return;
+				if (Object.keys(data.fields).length > 20) return;
 				const { topologyId } = ws.data;
-				if (topologyId) {
-					ws.publish(`topology:${topologyId}`, text);
-				}
+				if (topologyId) ws.publish(`topology:${topologyId}`, text);
+			} else if (data.type === 'editing-stop') {
+				const { topologyId } = ws.data;
+				if (topologyId) ws.publish(`topology:${topologyId}`, text);
 			}
 		} catch {
 			// ignore malformed messages

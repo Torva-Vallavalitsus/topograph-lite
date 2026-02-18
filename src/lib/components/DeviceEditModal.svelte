@@ -83,6 +83,7 @@
 		debounceTimer = setTimeout(() => {
 			ws?.sendEditing(device.id, changed);
 		}, 150);
+		return () => clearTimeout(debounceTimer);
 	});
 
 	function closeModal() {
